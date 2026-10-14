@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СтройМаркет — Интернет-магазин стройматериалов</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Верхний бегущий баннер -->
+    <div class="bg-amber-600 text-slate-950 font-semibold text-sm py-2 overflow-hidden whitespace-nowrap relative shadow-md">
+        <div class="animate-marquee">
+            🏗️ Доставка по Джалал-Абаду и области в день заказа! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+            🔥 Скидки на цемент, арматуру и сухие смеси до 10%! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+            📞 Телефон колл-центра: +996 (555) 00-00-00 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+            ⭐ Стройте выгодно вместе со СтройМаркет!
+        </div>
+    </div>
+
+    <!-- Шапка сайта -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <!-- Логотип -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('catalog')">
+                <div class="bg-amber-600 p-2 rounded-lg text-slate-950 font-bold text-xl">🧱</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide text-amber-500" data-i18n="logo_title">СтройМаркет</h1>
+                    <p class="text-xs text-slate-400" data-i18n="logo_sub">Все для строительства и ремонта</p>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <nav class="flex items-center gap-2 md:gap-4">
+                <button onclick="switchTab('catalog')" id="nav-catalog" class="px-3 py-2 rounded-lg text-sm font-medium bg-amber-600 text-slate-950 transition" data-i18n="nav_catalog">Каталог</button>
+                <button onclick="switchTab('cart')" id="nav-cart" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition flex items-center gap-1">
+                    🛒 <span data-i18n="cart">Корзина</span> (<span id="cart-count">0</span>)
+                </button>
+                <button onclick="checkAdminAccess()" id="nav-admin" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 transition flex items-center gap-1 hidden">
+                    ⚙️ <span data-i18n="admin_panel">Админ-панель</span>
+                </button>
+            </nav>
+
+            <!-- Языки и Пользователь -->
+            <div class="flex items-center gap-3">
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500">
+                    <option value="ru">Русский</option>
+                    <option value="kg">Кыргызча</option>
+                    <option value="uz">Oʻzbekcha</option>
+                </select>
+
+                <div id="user-auth-area">
+                    <button onclick="openAuthModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-500 border border-amber-500/30 px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1">
+                        👤 <span id="auth-btn-text" data-i18n="login_btn">Войти</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- Вкладка 1: Каталог товаров -->
+        <section id="tab-catalog" class="space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <div class="w-full md:w-96">
+                    <input type="text" id="search-input" oninput="filterProducts()" placeholder="Поиск стройматериалов..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="flex flex-wrap gap-2" id="category-filters">
+                    <button onclick="filterCategory('all')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-slate-950 transition" data-i18n="cat_all">Все товары</button>
+                    <button onclick="filterCategory('cement')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition" data-i18n="cat_cement">Цемент и смеси</button>
+                    <button onclick="filterCategory('wood')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition" data-i18n="cat_wood">Пиломатериалы</button>
+                    <button onclick="filterCategory('metal')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition" data-i18n="cat_metal">Металлопрокат</button>
+                    <button onclick="filterCategory('tools')" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition" data-i18n="cat_tools">Инструменты</button>
+                </div>
+            </div>
+
+            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+        <!-- Вкладка 2: Корзина -->
+        <section id="tab-cart" class="hidden space-y-6">
+            <h2 class="text-2xl font-bold text-amber-500" data-i18n="cart_title">Корзина заказов</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-6 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 text-sm">
+                                <th class="py-3 px-2" data-i18n="table_product">Товар</th>
+                                <th class="py-3 px-2" data-i18n="table_price">Цена</th>
+                                <th class="py-3 px-2" data-i18n="table_qty">Количество</th>
+                                <th class="py-3 px-2" data-i18n="table_total">Итого</th>
+                                <th class="py-3 px-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-items" class="divide-y divide-slate-800 text-sm"></tbody>
+                    </table>
+                    <div id="empty-cart" class="text-center py-12 text-slate-500 hidden">
+                        <p class="text-lg" data-i18n="empty_cart">Корзина пуста. Выберите товары в каталоге!</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 h-fit">
+                    <h3 class="text-lg font-semibold text-slate-200" data-i18n="checkout_title">Оформление доставки</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_name">Ваше имя</label>
+                            <input type="text" id="order-name" placeholder="Дониёрбек" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_phone">Номер телефона</label>
+                            <input type="text" id="order-phone" placeholder="+996 (___) __-__-__" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_city">Город / Район</label>
+                            <select id="order-city" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                                <option value="Jalal-Abad">Джалал-Абад</option>
+                                <option value="Bishkek">Бишкек</option>
+                                <option value="Osh">Ош</option>
+                                <option value="Kara-Kul">Кара-Куль</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_address">Точный адрес доставки</label>
+                            <textarea id="order-address" rows="2" placeholder="ул. Ленина 15" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-800 pt-4 flex justify-between items-center text-lg font-bold">
+                        <span data-i18n="total_sum">Итого:</span>
+                        <span id="cart-total" class="text-amber-500">0 сом</span>
+                    </div>
+                    <button onclick="checkoutOrder()" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-lg transition text-sm" data-i18n="btn_order">Подтвердить заказ</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Вкладка 3: Админ-панель -->
+        <section id="tab-admin" class="hidden space-y-6">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <h2 class="text-2xl font-bold text-amber-500" data-i18n="admin_title">Панель администратора</h2>
+                <div class="flex gap-2">
+                    <button onclick="switchAdminSub('products')" id="admin-sub-prod" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-slate-950 transition" data-i18n="admin_tab_prods">Товары</button>
+                    <button onclick="switchAdminSub('orders')" id="admin-sub-ord" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition" data-i18n="admin_tab_ords">Заказы клиентов (<span id="orders-badge">0</span>)</button>
+                </div>
+            </div>
+
+            <!-- Подвкладка: Управление товарами -->
+            <div id="admin-view-products" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 h-fit">
+                    <h3 class="text-lg font-semibold text-slate-200" data-i18n="add_product_title">Добавить новый стройматериал</h3>
+                    <form onsubmit="addProduct(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="prod_name">Название товара</label>
+                            <input type="text" id="new-name" required placeholder="Цемент М-500" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="prod_category">Категория</label>
+                            <select id="new-cat" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                                <option value="cement">Цемент и смеси</option>
+                                <option value="wood">Пиломатериалы</option>
+                                <option value="metal">Металлопрокат</option>
+                                <option value="tools">Инструменты</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="prod_price">Цена (сом)</label>
+                            <input type="number" id="new-price" required placeholder="450" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="prod_unit">Единица измерения</label>
+                            <input type="text" id="new-unit" required placeholder="мешок 50кг" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1" data-i18n="prod_image">Ссылка на фото (URL)</label>
+                            <input type="url" id="new-image" required placeholder="https://..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-lg transition text-sm" data-i18n="btn_add">Добавить в каталог</button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-6">
+                    <h3 class="text-lg font-semibold text-slate-200 mb-4" data-i18n="manage_title">Список товаров</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 text-sm">
+                                    <th class="py-3 px-2" data-i18n="table_product">Товар</th>
+                                    <th class="py-3 px-2" data-i18n="table_category">Категория</th>
+                                    <th class="py-3 px-2" data-i18n="table_price">Цена</th>
+                                    <th class="py-3 px-2 text-right">Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-products-list" class="divide-y divide-slate-800 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Подвкладка: Заказы клиентов -->
+            <div id="admin-view-orders" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-4 md:p-6">
+                <h3 class="text-lg font-semibold text-slate-200 mb-4" data-i18n="orders_manage_title">Поступившие заказы от покупателей</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 text-sm">
+                                <th class="py-3 px-2">№ / Дата</th>
+                                <th class="py-3 px-2">Клиент</th>
+                                <th class="py-3 px-2">Телефон / Адрес</th>
+                                <th class="py-3 px-2">Состав заказа</th>
+                                <th class="py-3 px-2">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-orders-list" class="divide-y divide-slate-800 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно Авторизации / Регистрации / Админ-панели -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+            
+            <div class="text-center mb-6">
+                <div class="bg-amber-600/10 text-amber-500 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-xl font-bold border border-amber-500/25">🔐</div>
+                <h3 id="auth-modal-title" class="text-xl font-bold text-slate-100">Вход в аккаунт</h3>
+                <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Введите данные для доступа к покупкам</p>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div id="name-field-box" class="hidden">
+                    <label class="block text-xs text-slate-400 mb-1" data-i18n="lbl_name">Ваше имя</label>
+                    <input type="text" id="auth-name" placeholder="Дониёрбек" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1" id="login-label" data-i18n="lbl_phone">Email или Телефон</label>
+                    <input type="text" id="auth-login" required placeholder="user@mail.com / +996..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1" data-i18n="auth_pass">Пароль</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-lg transition text-sm">Войти</button>
+            </form>
+
+            <div class="mt-4 text-center text-xs text-slate-400">
+                <span id="auth-toggle-text">еще не создали аккаунт?</span> 
+                <button onclick="toggleAuthMode()" class="text-amber-500 font-semibold hover:underline ml-1" id="auth-toggle-btn">зарегистрироваться</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-12 text-center text-xs text-slate-500">
+        <p>© 2026 СтройМаркет. Все права защищены. Разработано на Dart / Flutter Web стандартах.</p>
+    </footer>
+
+    <!-- Логика приложения -->
+    <script>
+        let products = [
+            { id: 1, name: "Цемент Портланд М-500", category: "cement", price: 480, unit: "мешок 50кг", image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80" },
+            { id: 2, name: "Арматура рифленая А500С (12мм)", category: "metal", price: 62, unit: "метр", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=600&q=80" },
+            { id: 3, name: "Доска обрезная сосна (куб)", category: "wood", price: 18500, unit: "м³", image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80" },
+            { id: 4, name: "Штукатурка гипсовая Волма", category: "cement", price: 420, unit: "мешок 30кг", image: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80" },
+            { id: 5, name: "Перфоратор Makita HR2470", category: "tools", price: 11500, unit: "шт", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=600&q=80" },
+            { id: 6, name: "Профнастил кровельный (коричневый)", category: "metal", price: 680, unit: "лист", image: "https://images.unsplash.com/photo-1590069261209-f8e9b8642343?auto=format&fit=crop&w=600&q=80" }
+        ];
+
+        let cart = [];
+        let orders = [];
+        let currentCategory = 'all';
+        let currentLang = 'ru';
+        let currentUser = null; 
+        let authState = 'login'; // 'login', 'register', или 'admin'
+
+        const translations = {
+            ru: {
+                logo_title: "СтройМаркет", logo_sub: "Все для строительства и ремонта",
+                nav_catalog: "Каталог", cart: "Корзина", admin_panel: "Админ-панель", login_btn: "Войти",
+                cat_all: "Все товары", cat_cement: "Цемент и смеси", cat_wood: "Пиломатериалы", cat_metal: "Металлопрокат", cat_tools: "Инструменты",
+                cart_title: "Корзина заказов", table_product: "Товар", table_price: "Цена", table_qty: "Количество", table_total: "Итого",
+                empty_cart: "Корзина пуста. Выберите товары в каталоге!", checkout_title: "Оформление доставки",
+                lbl_name: "Ваше имя", lbl_phone: "Номер телефона / Email", lbl_city: "Город / Район", lbl_address: "Точный адрес доставки",
+                total_sum: "Итого:", btn_order: "Подтвердить заказ", admin_title: "Панель администратора",
+                admin_tab_prods: "Товары", admin_tab_ords: "Заказы клиентов", add_product_title: "Добавить новый стройматериал",
+                prod_name: "Название товара", prod_category: "Категория", prod_price: "Цена (сом)", prod_unit: "Единица измерения", prod_image: "Ссылка на фото (URL)",
+                btn_add: "Добавить в каталог", manage_title: "Список товаров", table_category: "Категория",
+                orders_manage_title: "Поступившие заказы от покупателей", btn_buy: "В корзину",
+                success_order: "Спасибо! Ваш заказ успешно оформлен.", auth_pass: "Пароль"
+            },
+            kg: {
+                logo_title: "СтройМаркет", logo_sub: "Курулуш жана оңдоо үчүн баары",
+                nav_catalog: "Каталог", cart: "Себет", admin_panel: "Админ панель", login_btn: "Кирүү",
+                cat_all: "Бардык товарлар", cat_cement: "Цемент жана аралашмалар", cat_wood: "Жыгач материалдар", cat_metal: "Металл прокаты", cat_tools: "Шаймандар",
+                cart_title: "Буйрутмалар себети", table_product: "Товар", table_price: "Баасы", table_qty: "Саны", table_total: "Жалпы",
+                empty_cart: "Себет бош. Каталогдон товар тандаңыз!", checkout_title: "Жеткирүүнү тариздөө",
+                lbl_name: "Сиздин атыңыз", lbl_phone: "Телефон номери / Email", lbl_city: "Шаар / Район", lbl_address: "Жеткирүү дареги",
+                total_sum: "Жалпы сумма:", btn_order: "Буйрутманы тастыктоо", admin_title: "Администратор панели",
+                admin_tab_prods: "Товарлар", admin_tab_ords: "Кардар буйрутмалары", add_product_title: "Жаңы курулуш материал кошуу",
+                prod_name: "Товардын аталышы", prod_category: "Категория", prod_price: "Баасы (сом)", prod_unit: "Чен бирдиги", prod_image: "Сүрөт шилтемеси (URL)",
+                btn_add: "Каталогго кошуу", manage_title: "Товарлар тизмеси", table_category: "Категория",
+                orders_manage_title: "Келип түшкөн буйрутмалар", btn_buy: "Себетке салуу",
+                success_order: "Рахмат! Буйрутмаңыз ийгиликтүү кабыл алынды.", auth_pass: "Сыр сөз (Пароль)"
+            },
+            uz: {
+                logo_title: "СтройМаркет", logo_sub: "Qurilish va ta'mirlash uchun barchasi",
+                nav_catalog: "Katalog", cart: "Savat", admin_panel: "Admin panel", login_btn: "Kirish",
+                cat_all: "Barcha mahsulotlar", cat_cement: "Sement va qorishmalar", cat_wood: "Yog'och materiallar", cat_metal: "Metall prokat", cat_tools: "Asboblar",
+                cart_title: "Buyurtmalar savati", table_product: "Mahsulot", table_price: "Narxi", table_qty: "Soni", table_total: "Jami",
+                empty_cart: "Savat bo'sh. Katalokdan mahsulot tanlang!", checkout_title: "Yetkazib berishni rasmiylashtirish",
+                lbl_name: "Ismingiz", lbl_phone: "Telefon raqami / Email", lbl_city: "Shahar / Tuman", lbl_address: "Aniq manzil",
+                total_sum: "Jami summa:", btn_order: "Buyurtmani tasdiqlash", admin_title: "Administrator paneli",
+                admin_tab_prods: "Mahsulotlar", admin_tab_ords: "Mijoz buyurtmalari", add_product_title: "Yangi qurilish materialini qo'shish",
+                prod_name: "Mahsulot nomi", prod_category: "Kategoriya", prod_price: "Narxi (som)", prod_unit: "O'lchov birligi", prod_image: "Rasm havolasi (URL)",
+                btn_add: "Katalogga qo'shish", manage_title: "Mahsulotlar ro'yxati", table_category: "Kategoriya",
+                orders_manage_title: "Kelib tushgan buyurtmalar", btn_buy: "Savatga qo'shish",
+                success_order: "Rahmat! Buyurtmangiz qabul qilindi.", auth_pass: "Parol"
+            }
+        };
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            renderProducts();
+            renderCart();
+            renderAdminProducts();
+        }
+
+        function switchTab(tabName) {
+            ['catalog', 'cart', 'admin'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.classList.remove('bg-amber-600', 'text-slate-950');
+                    navBtn.classList.add('text-slate-300', 'hover:bg-slate-800');
+                }
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const targetNav = document.getElementById(`nav-${tabName}`);
+            if (targetNav) {
+                targetNav.classList.add('bg-amber-600', 'text-slate-950');
+                targetNav.classList.remove('text-slate-300', 'hover:bg-slate-800');
+            }
+        }
+
+        function checkAdminAccess() {
+            if (!currentUser || !currentUser.isAdmin) {
+                openAuthModal('admin');
+                return;
+            }
+            switchTab('admin');
+        }
+
+        function switchAdminSub(sub) {
+            if (sub === 'products') {
+                document.getElementById('admin-view-products').classList.remove('hidden');
+                document.getElementById('admin-view-orders').classList.add('hidden');
+                document.getElementById('admin-sub-prod').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-slate-950 transition";
+                document.getElementById('admin-sub-ord').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+            } else {
+                document.getElementById('admin-view-products').classList.add('hidden');
+                document.getElementById('admin-view-orders').classList.remove('hidden');
+                document.getElementById('admin-sub-ord').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-slate-950 transition";
+                document.getElementById('admin-sub-prod').className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+                renderAdminOrders();
+            }
+        }
+
+        // Модальное окно (Вход / Регистрация / Админ-панель)
+        function openAuthModal(mode = 'login') {
+            authState = mode;
+            updateModalUI();
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            if (authState === 'login') {
+                authState = 'register';
+            } else if (authState === 'register') {
+                authState = 'login';
+            } else if (authState === 'admin') {
+                authState = 'login';
+            }
+            updateModalUI();
+        }
+
+        function switchToAdminMode() {
+            authState = 'admin';
+            updateModalUI();
+        }
+
+        function updateModalUI() {
+            const nameBox = document.getElementById('name-field-box');
+            const title = document.getElementById('auth-modal-title');
+            const sub = document.getElementById('auth-modal-sub');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const loginLabel = document.getElementById('login-label');
+
+            if (authState === 'login') {
+                nameBox.classList.add('hidden');
+                title.innerText = "Вход в аккаунт";
+                sub.innerText = "Введите данные для доступа к покупкам";
+                loginLabel.innerText = "Email или Телефон";
+                submitBtn.innerText = "Войти";
+                toggleText.innerHTML = 'еще не создали аккаунт? <button onclick="toggleAuthMode()" class="text-amber-500 font-semibold hover:underline ml-1">зарегистрироваться</button>';
+                toggleBtn.style.display = 'none'; // Скрываем дублирующую кнопку, управляем через HTML в toggleText
+            } else if (authState === 'register') {
+                nameBox.classList.remove('hidden');
+                title.innerText = "Регистрация аккаунта";
+                sub.innerText = "Создайте профиль для заказа стройматериалов";
+                loginLabel.innerText = "Email или Телефон";
+                submitBtn.innerText = "Зарегистрироваться";
+                toggleText.innerHTML = 'уже есть аккаунт? <button onclick="toggleAuthMode()" class="text-amber-500 font-semibold hover:underline ml-1">войти</button>';
+                toggleBtn.style.display = 'none';
+            } else if (authState === 'admin') {
+                nameBox.classList.add('hidden');
+                title.innerText = "Вход в админ-панель";
+                sub.innerText = "Введите секретный ключ администратора";
+                loginLabel.innerText = "Логин администратора";
+                submitBtn.innerText = "Войти в админку";
+                // Снизу внизу ссылка на вход в обычную админ-панель/регистрацию с маленькой буквой
+                toggleText.innerHTML = 'хотите войти как покупатель? <button onclick="toggleAuthMode()" class="text-amber-500 font-semibold hover:underline ml-1">вернуться</button>';
+                toggleBtn.style.display = 'none';
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const login = document.getElementById('auth-login').value;
+            const pass = document.getElementById('auth-password').value;
+            const nameInput = document.getElementById('auth-name').value;
+
+            if (authState === 'admin') {
+                if (login === 'admin' && pass === '1234') {
+                    currentUser = { name: "Администратор", isAdmin: true };
+                    document.getElementById('auth-btn-text').innerText = "Админ";
+                    document.getElementById('nav-admin').classList.remove('hidden');
+                    closeAuthModal();
+                    switchTab('admin');
+                    alert("Успешный вход в панель администратора!");
+                } else {
+                    alert("Неверный логин или пароль администратора! (Попробуйте admin / 1234)");
+                }
+                return;
+            }
+
+            currentUser = {
+                name: authState === 'register' ? (nameInput || "Пользователь") : (login.split('@')[0] || "Клиент"),
+                email: login,
+                isAdmin: false
+            };
+
+            document.getElementById('auth-btn-text').innerText = currentUser.name;
+            document.getElementById('order-name').value = currentUser.name;
+            document.getElementById('nav-admin').classList.add('hidden');
+
+            closeAuthModal();
+            alert(authState === 'register' ? "Регистрация прошла успешно!" : "Вы успешно вошли в систему!");
+        }
+
+        // Рендер каталога
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            const filtered = products.filter(p => {
+                const matchesCat = currentCategory === 'all' || p.category === currentCategory;
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">Товары не найдены</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                grid.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between shadow-md hover:border-amber-500/50 transition">
+                        <img src="${p.image}" alt="${p.name}" class="h-48 w-full object-cover">
+                        <div class="p-4 flex flex-col justify-between flex-grow">
+                            <div>
+                                <span class="text-xs text-amber-500 font-semibold uppercase">${p.category}</span>
+                                <h3 class="font-semibold text-slate-100 text-base mt-1">${p.name}</h3>
+                                <p class="text-xs text-slate-400 mt-1">За 1 ${p.unit}</p>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <span class="text-lg font-bold text-amber-500">${p.price} сом</span>
+                                <button onclick="addToCart(${p.id})" class="bg-amber-600 hover:bg-amber-500 text-slate-950 px-3 py-2 rounded-lg text-xs font-semibold transition">
+                                    ${translations[currentLang].btn_buy}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-600', 'text-slate-950');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            event.target.classList.add('bg-amber-600', 'text-slate-950');
+            event.target.classList.remove('bg-slate-800', 'text-slate-300');
+            renderProducts();
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        // Корзина
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const cartItem = cart.find(item => item.id === productId);
+            if (cartItem) {
+                cartItem.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartCount();
+            renderCart();
+        }
+
+        function updateCartCount() {
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cart-count').innerText = totalQty;
+        }
+
+        function renderCart() {
+            const tbody = document.getElementById('cart-items');
+            const emptyDiv = document.getElementById('empty-cart');
+            tbody.innerHTML = '';
+
+            if (cart.length === 0) {
+                emptyDiv.classList.remove('hidden');
+                document.getElementById('cart-total').innerText = '0 сом';
+                return;
+            }
+            emptyDiv.classList.add('hidden');
+
+            let totalSum = 0;
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.qty;
+                totalSum += itemTotal;
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-800">
+                        <td class="py-3 px-2 flex items-center gap-3">
+                            <img src="${item.image}" class="w-10 h-10 object-cover rounded-lg">
+                            <span class="font-medium text-slate-200">${item.name}</span>
+                        </td>
+                        <td class="py-3 px-2 text-slate-300">${item.price} сом</td>
+                        <td class="py-3 px-2">
+                            <div class="flex items-center gap-2">
+                                <button onclick="changeQty(${index}, -1)" class="bg-slate-800 px-2 py-1 rounded text-xs">-</button>
+                                <span>${item.qty}</span>
+                                <button onclick="changeQty(${index}, 1)" class="bg-slate-800 px-2 py-1 rounded text-xs">+</button>
+                            </div>
+                        </td>
+                        <td class="py-3 px-2 font-semibold text-amber-500">${itemTotal} сом</td>
+                        <td class="py-3 px-2 text-right">
+                            <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-300 text-xs">Удалить</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('cart-total').innerText = totalSum + ' сом';
+        }
+
+        function changeQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartCount();
+            renderCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartCount();
+            renderCart();
+        }
+
+        function checkoutOrder() {
+            const name = document.getElementById('order-name').value;
+            const phone = document.getElementById('order-phone').value;
+            const city = document.getElementById('order-city').value;
+            const address = document.getElementById('order-address').value;
+
+            if (!name || !phone || !address) {
+                alert("Пожалуйста, заполните все поля для оформления заказа!");
+                return;
+            }
+
+            const newOrder = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                name, phone, city, address,
+                items: [...cart],
+                total: cart.reduce((sum, i) => sum + (i.price * i.qty), 0)
+            };
+
+            orders.push(newOrder);
+            document.getElementById('orders-badge').innerText = orders.length;
+
+            alert(`${translations[currentLang].success_order} Номер заказа: ${newOrder.id}`);
+            cart = [];
+            updateCartCount();
+            renderCart();
+            switchTab('catalog');
+        }
+
+        // Админ-панель функции
+        function addProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('new-name').value;
+            const category = document.getElementById('new-cat').value;
+            const price = parseFloat(document.getElementById('new-price').value);
+            const unit = document.getElementById('new-unit').value;
+            const image = document.getElementById('new-image').value;
+
+            products.push({ id: Date.now(), name, category, price, unit, image });
+            renderProducts();
+            renderAdminProducts();
+            e.target.reset();
+            alert("Товар успешно добавлен в каталог!");
+        }
+
+        function renderAdminProducts() {
+            const list = document.getElementById('admin-products-list');
+            if (!list) return;
+            list.innerHTML = '';
+            products.forEach(p => {
+                list.innerHTML += `
+                    <tr class="border-b border-slate-800">
+                        <td class="py-3 px-2 flex items-center gap-3">
+                            <img src="${p.image}" class="w-8 h-8 object-cover rounded">
+                            <span class="font-medium text-slate-200">${p.name}</span>
+                        </td>
+                        <td class="py-3 px-2 text-slate-400">${p.category}</td>
+                        <td class="py-3 px-2 text-amber-500 font-semibold">${p.price} сом</td>
+                        <td class="py-3 px-2 text-right">
+                            <button onclick="deleteProduct(${p.id})" class="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-2.5 py-1 rounded-lg text-xs transition">Удалить</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            renderProducts();
+            renderAdminProducts();
+        }
+
+        function renderAdminOrders() {
+            const list = document.getElementById('admin-orders-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (orders.length === 0) {
+                list.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500">Пока нет ни одного заказа</td></tr>`;
+                return;
+            }
+
+            orders.forEach(ord => {
+                const itemsStr = ord.items.map(i => `${i.name} (${i.qty} ${i.unit})`).join(', ');
+                list.innerHTML += `
+                    <tr class="border-b border-slate-800 align-top">
+                        <td class="py-3 px-2 font-mono text-amber-500 text-xs">${ord.id}<br><span class="text-slate-500">${ord.date}</span></td>
+                        <td class="py-3 px-2 font-medium text-slate-200">${ord.name}</td>
+                        <td class="py-3 px-2 text-slate-300">${ord.phone}<br><span class="text-xs text-slate-400">${ord.city}, ${ord.address}</span></td>
+                        <td class="py-3 px-2 text-slate-300 text-xs max-w-xs">${itemsStr}</td>
+                        <td class="py-3 px-2 font-bold text-amber-500">${ord.total} сом</td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.onload = function() {
+            renderProducts();
+            renderAdminProducts();
+            // Добавим в самый низ формы авторизации маленькую незаметную ссылку на админ-панель
+            const modalBox = document.querySelector('#auth-modal .bg-slate-900');
+            const adminLinkDiv = document.createElement('div');
+            adminLinkDiv.className = "mt-2 text-center";
+            adminLinkDiv.innerHTML = `<button onclick="switchToAdminMode()" class="text-xs text-slate-500 hover:text-amber-500 transition">админ панель</button>`;
+            modalBox.appendChild(adminLinkDiv);
+        };
+    </script>
+</body>
+</html>
